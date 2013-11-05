@@ -4,7 +4,7 @@ try:
 	from twitter import Twitter, OAuth
 except ImportError:
 	print("Import error. Make sure you have python-twitter!")
-	raise
+	raise SystemExit
 
 d2= defaultdict(list)
 f=open('Bible Text2.txt')
