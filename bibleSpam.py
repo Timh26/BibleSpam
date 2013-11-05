@@ -1,6 +1,10 @@
-from collections import defaultdict
-import random,re,time
-from twitter import Twitter, OAuth
+try:
+	from collections import defaultdict
+	import random,re,time
+	from twitter import Twitter, OAuth
+except ImportError:
+	print("Import error. Make sure you have python-twitter!")
+	raise
 
 d2= defaultdict(list)
 f=open('Bible Text2.txt')
