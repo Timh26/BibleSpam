@@ -2,6 +2,7 @@ try:
 	from collections import defaultdict
 	import random,re,time
 	from twitter import Twitter, OAuth
+	import pickle as pickle
 except ImportError:
 	print("Import error. Make sure you have python-twitter!")
 	raise SystemExit
@@ -11,17 +12,35 @@ f=open('Bible Text2.txt')
 words = re.findall("[\w'.!?]+",f.read())
 
 # Connecting to twitter
-twit = Twitter(auth = OAuth("OAUTH_TOKEN", "OAUTH_SECRET","CONSUMER_KEY", "CONSUMER_SECRET")) #You'll need to get an OAuth key at http://dev.twitter.com/
+#try:
+	#twit = Twitter(auth = OAuth("OAUTH_TOKEN", "OAUTH_SECRET","CONSUMER_KEY", "CONSUMER_SECRET")) #You'll need to get an OAuth key at http://dev.twitter.com/	
+#except Exception:
+#	print("Twitter connection error.")
+#	raise SystemExit
+try:
+	sTime = time.time()
+	d2 =pickle.load( open("wordDictionary.mch","rb"))#using *.mch to represent a pickled markov chain
+	print("Words chain loaded from wordDictionary.mch in ",time.time()-sTime,"seconds")
+	print(time.time()-sTime)
+except Exception as e:
+	print("Error: "+str(e))
+	print("Couldn't load dictionary.")
+	avail = False
+	print("Generating...")
+	for idx in range(0,len(words)-2):
+		word1 = words[idx].lower().replace("\n",' ').replace(' ','')
+		word2 = words[idx+1].lower().replace("\n",' ').replace(' ','')
+		word3 = words[idx+2].lower().replace("\n",' ').replace(' ','')
+		d2[word1+'<>'+word2].append(word3)
+	print("Done Generating")
+	pickle.dump(d2,open("wordDictionary.mch","wb"))
+	print("Word dictionary written.")
+
 
 
 #Generating the markov chain
-print("Generating...")
-for idx in range(0,len(words)-2):
-	word1 = words[idx].lower().replace("\n",' ').replace(' ','')
-	word2 = words[idx+1].lower().replace("\n",' ').replace(' ','')
-	word3 = words[idx+2].lower().replace("\n",' ').replace(' ','')
-	d2[word1+'<>'+word2].append(word3)
-print("Done Generating")
+
+
 
 #putting out the tweets
 outstring = ''
