@@ -1,0 +1,6 @@
+nltk.egg-info/PKG-INFO
+nltk.egg-info/SOURCES.txt
+nltk.egg-info/dependency_links.txt
+nltk.egg-info/not-zip-safe
+nltk.egg-info/requires.txt
+nltk.egg-info/top_level.txt
