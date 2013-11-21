@@ -1,6 +1,6 @@
 try:
 	from collections import defaultdict
-	import random,re,time
+	import random,re,time,glob
 	from twitter import Twitter, OAuth
 	import pickle as pickle
 except ImportError:
@@ -10,13 +10,19 @@ except ImportError:
 d2= defaultdict(list)
 f=open('Bible Text2.txt')
 words = re.findall("[\w'.!?]+",f.read())
-
-# Connecting to twitter
-#try:
-	#twit = Twitter(auth = OAuth("OAUTH_TOKEN", "OAUTH_SECRET","CONSUMER_KEY", "CONSUMER_SECRET")) #You'll need to get an OAuth key at http://dev.twitter.com/	
-#except Exception:
-#	print("Twitter connection error.")
-#	raise SystemExit
+with open('twitter.oauth') as OA: # the OAuth file should contain the OAuth token, OAuth secret, Consumer key, and Consumer secret, in that order, on separate lines.
+	keys = OA.readLines()
+	OAUTH_TOKEN = keys[0]
+	OAUTH_SECRET = keys[1]
+	CONSUMER_KEY = keys[2]
+	CONSUMER_SECRET = keys[3]
+#Connecting to twitter
+sources = glob.glob('./sources/*.txt')
+try:
+	twit = Twitter(auth = OAuth(OAUTH_TOKEN, OAUTH_SECRET,CONSUMER_KEY, CONSUMER_SECRET)) #You'll need to get an OAuth key at http://dev.twitter.com/	
+except Exception:
+	print("Twitter connection error.")
+	raise SystemExit
 try:
 	sTime = time.time()
 	d2 =pickle.load( open("wordDictionary.mch","rb"))#using *.mch to represent a pickled markov chain
@@ -35,12 +41,6 @@ except Exception as e:
 	print("Done Generating")
 	pickle.dump(d2,open("wordDictionary.mch","wb"))
 	print("Word dictionary written.")
-
-
-
-#Generating the markov chain
-
-
 
 #putting out the tweets
 outstring = ''
