@@ -35,5 +35,6 @@ nosetests.xml
 .project
 .pydevproject
 
-#Project dictionary files
+#Project files
 *.mch
+*.oauth
