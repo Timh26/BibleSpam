@@ -1,53 +1,45 @@
 try:
 	from collections import defaultdict
-	import random,re,time,glob
+	import random,re,time,glob,os
 	from twitter import Twitter, OAuth
 	import pickle as pickle
 except ImportError:
-	print("Import error. Make sure you have python-twitter!")
+	print("Import error. Make sure you have the required libraries!")
 	raise SystemExit
 
-d2= defaultdict(list)
-f=open('Bible Text2.txt')
-words = re.findall("[\w'.!?]+",f.read())
+TESTING = True
 with open('twitter.oauth') as OA: # the OAuth file should contain the OAuth token, OAuth secret, Consumer key, and Consumer secret, in that order, on separate lines.
-	keys = OA.readLines()
-	OAUTH_TOKEN = keys[0]
-	OAUTH_SECRET = keys[1]
-	CONSUMER_KEY = keys[2]
-	CONSUMER_SECRET = keys[3]
+	keys = OA.readlines()
+	OAUTH_TOKEN = keys[0].replace("\n","")
+	OAUTH_SECRET = keys[1].replace("\n","")
+	CONSUMER_KEY = keys[2].replace("\n","")
+	CONSUMER_SECRET = keys[3].replace("\n","")
+print(keys)
 #Connecting to twitter
-sources = glob.glob('./sources/*.txt')
 try:
 	twit = Twitter(auth = OAuth(OAUTH_TOKEN, OAUTH_SECRET,CONSUMER_KEY, CONSUMER_SECRET)) #You'll need to get an OAuth key at http://dev.twitter.com/	
 except Exception:
 	print("Twitter connection error.")
 	raise SystemExit
-try:
-	sTime = time.time()
-	d2 =pickle.load( open("wordDictionary.mch","rb"))#using *.mch to represent a pickled markov chain
-	print("Words chain loaded from wordDictionary.mch in ",time.time()-sTime,"seconds")
-	print(time.time()-sTime)
-except Exception as e:
-	print("Error: "+str(e))
-	print("Couldn't load dictionary.")
-	avail = False
-	print("Generating...")
-	for idx in range(0,len(words)-2):
-		word1 = words[idx].lower().replace("\n",' ').replace(' ','')
-		word2 = words[idx+1].lower().replace("\n",' ').replace(' ','')
-		word3 = words[idx+2].lower().replace("\n",' ').replace(' ','')
-		d2[word1+'<>'+word2].append(word3)
-	print("Done Generating")
-	pickle.dump(d2,open("wordDictionary.mch","wb"))
-	print("Word dictionary written.")
 
+
+os.chdir('./sources') #load up list of sourcefiles. 
+sources = glob.glob('*.txt')
+for idx in range(len(sources)):
+	sources[idx] = sources[idx].split(".")[0]
+print (sources)
 #putting out the tweets
 outstring = ''
 tweetcount = 0
 while (True):
+	currFile = random.choice(sources)
+	sig = " - not "+str(currFile)
+	print(currFile)
+	with open(currFile+"wordDictionary.mch",'rb') as pkl:
+		d2 = pickle.load(pkl)
 	outstring = ''
-	while (len(outstring)>140) or (len(outstring)<50):
+	while (len(outstring)+len(sig)>140) or (len(outstring)<50):
+		
 		print("trying\n")
 		p = random.choice(list(d2.keys())).split('<>')#choose a random word pair
 		w1 = p[0]
@@ -73,16 +65,20 @@ while (True):
 			w1=w2
 			w2=w3.lower()
 			w3 = random.choice(d2[w1+'<>'+w2])
+	outstring += sig
 	print(outstring+"\n")
 	print("Success!")
-	try:
-		twit.statuses.update(status = outstring)
-		tweetcount+=1
-		print("Tweet #"+str(tweetcount))
-		time.sleep(10)
-	except Exception as e:
-		print("EXCEPTION RAISED: ",e)
-	for x in range(1,90):
-		time.sleep(60)
-		print(str(90-x)+" minutes until next tweet.")
-f.close()
+	if(not TESTING):
+		try:
+			twit.statuses.update(status = outstring)
+			tweetcount+=1
+			print("Tweet #"+str(tweetcount))
+			time.sleep(10)
+		except Exception as e:
+			print("EXCEPTION RAISED: ",e)
+		for x in range(1,90):
+			time.sleep(60)
+			print(str(90-x)+" minutes until next tweet.")
+	time.sleep(2)
+	d2= 0
+	pkl.close()
